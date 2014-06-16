@@ -214,8 +214,8 @@ public class MasterKeyPasswordSafe extends BasePasswordSafeProvider {
                 }
                 else {
                   MasterPasswordDialog.askPassword(project, MasterKeyPasswordSafe.this, requestor);
-                  result.set(key.get().get());
                 }
+                result.set(key.get().get());
               }
               catch (PasswordSafeException e) {
                 ex.set(e);
