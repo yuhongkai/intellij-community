@@ -609,9 +609,10 @@ public class EditorMarkupModelImpl extends MarkupModelImpl implements EditorMark
     }
 
     private void paintTrackBasement(Graphics g, Rectangle bounds) {
-      if (UISettings.getInstance().PRESENTATION_MODE || SystemInfo.isMac) {
-        return;
-      }
+      // disabled for EAP IDEA-127686 todo KB
+      //if (UISettings.getInstance().PRESENTATION_MODE || SystemInfo.isMac) {
+      //  return;
+      //}
 
       g.setColor(ButtonlessScrollBarUI.getTrackBackground());
       g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height + 1);
