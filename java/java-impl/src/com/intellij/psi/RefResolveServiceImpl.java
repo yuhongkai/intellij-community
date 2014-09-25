@@ -274,10 +274,9 @@ public class RefResolveServiceImpl extends RefResolveService implements Runnable
     if (virtualFile != null &&
         virtualFile.isValid() &&
         project.isInitialized() &&
-        myProjectFileIndex.isInContent(virtualFile)) {
-      if (virtualFile.isDirectory()) return true;
-      if (virtualFile.getFileType() == StdFileTypes.JAVA) return true;
-      if (virtualFile.getFileType() == StdFileTypes.XML && !ProjectCoreUtil.isProjectOrWorkspaceFile(virtualFile)) return true;
+        myProjectFileIndex.isInContent(virtualFile) &&
+        isSupportedFileType(virtualFile)) {
+      return true;
     }
 
     // else mark it as resolved so we will not have to check it again
@@ -286,6 +285,14 @@ public class RefResolveServiceImpl extends RefResolveService implements Runnable
       fileIsResolved.set(id);
     }
 
+    return false;
+  }
+
+  static boolean isSupportedFileType(@NotNull VirtualFile virtualFile) {
+    if (virtualFile.isDirectory()) return true;
+    if (virtualFile.getFileType() == StdFileTypes.JAVA) return true;
+    if (virtualFile.getFileType() == StdFileTypes.XML && !ProjectCoreUtil.isProjectOrWorkspaceFile(virtualFile)) return true;
+    if ("groovy".equals(virtualFile.getExtension())) return true;
     return false;
   }
 
