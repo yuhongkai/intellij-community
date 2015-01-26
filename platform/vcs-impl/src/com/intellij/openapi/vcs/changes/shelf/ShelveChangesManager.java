@@ -665,26 +665,10 @@ public class ShelveChangesManager extends AbstractProjectComponent implements JD
     notifyStateChanged();
   }
 
-  @NotNull
-  public static List<TextFilePatch> loadPatches(Project project,
-                                                final String patchPath,
-                                                CommitContext commitContext) throws IOException, PatchSyntaxException {
-    return loadPatches(project, patchPath, commitContext, true);
-  }
-
-  @NotNull
-  static List<? extends FilePatch> loadPatchesWithoutContent(Project project,
-                                                             final String patchPath,
-                                                             CommitContext commitContext) throws IOException, PatchSyntaxException {
-    return loadPatches(project, patchPath, commitContext, false);
-  }
-
-  private static List<TextFilePatch> loadPatches(Project project,
-                                                 final String patchPath,
-                                                 CommitContext commitContext,
-                                                 boolean loadContent) throws IOException, PatchSyntaxException {
+  // todo problem: control usage
+  public static List<TextFilePatch> loadPatches(Project project, final String patchPath, CommitContext commitContext) throws IOException, PatchSyntaxException {
     char[] text = FileUtil.loadFileText(new File(patchPath), CharsetToolkit.UTF8);
-    PatchReader reader = new PatchReader(new CharArrayCharSequence(text), loadContent);
+    PatchReader reader = new PatchReader(new CharArrayCharSequence(text));
     final List<TextFilePatch> textFilePatches = reader.readAllPatches();
     final TransparentlyFailedValueI<Map<String, Map<String, CharSequence>>, PatchSyntaxException> additionalInfo = reader.getAdditionalInfo(
       null);

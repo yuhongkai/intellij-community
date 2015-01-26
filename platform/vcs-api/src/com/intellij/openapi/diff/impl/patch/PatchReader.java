@@ -52,13 +52,9 @@ public class PatchReader {
   @NonNls private static final Pattern ourContextAfterHunkStartPattern = Pattern.compile("--- (\\d+),(\\d+) ----");
 
   public PatchReader(CharSequence patchContent) {
-    this(patchContent, true);
-  }
-
-  public PatchReader(CharSequence patchContent, boolean parseHunks) {
     myLines = LineTokenizer.tokenizeIntoList(patchContent, false);
-    myAdditionalInfoParser = new AdditionalInfoParser(!parseHunks);
-    myPatchContentParser = new PatchContentParser(parseHunks);
+    myAdditionalInfoParser = new AdditionalInfoParser();
+    myPatchContentParser = new PatchContentParser();
   }
 
   public List<TextFilePatch> readAllPatches() throws PatchSyntaxException {
@@ -173,12 +169,10 @@ public class PatchReader {
   private static class AdditionalInfoParser implements Parser {
     // first is path!
     private final Map<String,Map<String, CharSequence>> myResultMap;
-    private final boolean myIgnoreMode;
     private Map<String, CharSequence> myAddMap;
     private PatchSyntaxException mySyntaxException;
 
-    private AdditionalInfoParser(boolean ignore) {
-      myIgnoreMode = ignore;
+    private AdditionalInfoParser() {
       myAddMap = new HashMap<String, CharSequence>();
       myResultMap = new HashMap<String, Map<String, CharSequence>>();
     }
@@ -200,16 +194,12 @@ public class PatchReader {
 
     @Override
     public boolean testIsStart(String start) {
-      if (myIgnoreMode || mySyntaxException != null) return false;  // stop on first error
+      if (mySyntaxException != null) return false;  // stop on first error
       return start != null && start.contains(UnifiedDiffWriter.ADDITIONAL_PREFIX);
     }
 
     @Override
     public void parse(String start, ListIterator<String> iterator) {
-      if (myIgnoreMode) {
-        return;
-      }
-
       if (! iterator.hasNext()) {
         mySyntaxException =  new PatchSyntaxException(iterator.previousIndex(), "Empty additional info header");
         return;
@@ -254,15 +244,13 @@ public class PatchReader {
 
 
   private static class PatchContentParser implements Parser {
-    private final boolean myParseHunks;
     private DiffFormat myDiffFormat = null;
     private final List<TextFilePatch> myPatches;
 
     private boolean myDiffCommandLike;
     private boolean myIndexLike;
 
-    private PatchContentParser(boolean parseHunks) {
-      myParseHunks = parseHunks;
+    private PatchContentParser() {
       myPatches = new SmartList<TextFilePatch>();
     }
 
@@ -314,7 +302,7 @@ public class PatchReader {
       }
       extractFileName(curLine, curPatch, false, myDiffCommandLike && myIndexLike);
 
-      while (myParseHunks && iterator.hasNext()) {
+      while (iterator.hasNext()) {
         PatchHunk hunk;
         if (myDiffFormat == DiffFormat.UNIFIED) {
           hunk = readNextHunkUnified(iterator);
