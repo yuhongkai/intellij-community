@@ -223,6 +223,11 @@ public class
     return 8;
   }
 
+  @Override
+  public int tabMSize() {
+    return 8;
+  }
+
   public boolean shouldAddToGlobal(Point point) {
     final TabLabel label = getSelectedLabel();
     if (label == null || point == null) {
