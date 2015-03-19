@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2012 JetBrains s.r.o.
+ * Copyright 2000-2015 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,7 +183,7 @@ public abstract class SingleRowLayoutStrategy {
         x = data.position + (data.lastGhostVisible ? data.lastGhost.width : 0);
       }
       return new Rectangle(x, data.insets.top + JBTabsImpl.getSelectionTabVShift(),
-                           data.moreRectAxisSize - 1, myTabs.myHeaderFitSize.height - 1);
+                                            data.moreRectAxisSize - 1, myTabs.myHeaderFitSize.height - 1);
     }
 
 
@@ -240,7 +240,7 @@ public abstract class SingleRowLayoutStrategy {
 
     public Rectangle getMoreRect(final SingleRowPassInfo data) {
       return new Rectangle(myTabs.getWidth() - data.insets.right - data.moreRectAxisSize + 2, getFixedPosition(data),
-                           data.moreRectAxisSize - 1, myTabs.myHeaderFitSize.height - 1);
+                                            data.moreRectAxisSize - 1, myTabs.myHeaderFitSize.height - 1);
     }
 
     @Override
@@ -374,9 +374,9 @@ public abstract class SingleRowLayoutStrategy {
 
     public Rectangle getMoreRect(SingleRowPassInfo data) {
       return new Rectangle(data.layoutSize.width - myTabs.myHeaderFitSize.width,
-                           myTabs.getHeight() - data.insets.bottom - data.moreRectAxisSize - 1,
-                           myTabs.myHeaderFitSize.width - 1,
-                           data.moreRectAxisSize - 1);
+                        myTabs.getHeight() - data.insets.bottom - data.moreRectAxisSize - 1,
+                        myTabs.myHeaderFitSize.width - 1,
+                        data.moreRectAxisSize - 1);
     }
   }
 

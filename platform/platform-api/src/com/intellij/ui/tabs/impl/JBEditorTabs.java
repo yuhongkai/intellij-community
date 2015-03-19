@@ -215,8 +215,7 @@ public class JBEditorTabs extends JBTabsImpl {
       int height = maxLength - insets.top - insets.bottom;
       if (getTabsPosition() == JBTabsPosition.bottom) {
         y = r2.height - height - insets.top + getActiveTabUnderlineHeight();
-      }
-      else {
+      } else {
         height++;
         height -= getActiveTabUnderlineHeight();
       }
