@@ -544,6 +544,10 @@ public class JBTabsImpl extends JComponent
     myFirstTabOffset = firstTabOffset;
   }
 
+  public int tabMSize() {
+    return 20;
+  }
+
   class TabActionsAutoHideListener extends MouseMotionAdapter implements Weighted {
 
     private TabLabel myCurrentOverLabel;
@@ -1390,7 +1394,7 @@ public class JBTabsImpl extends JComponent
   }
 
   private void resetPopup() {
-//todo [kirillk] dirty hack, should rely on ActionManager to understand that menu item was either chosen on or cancelled
+    //todo [kirillk] dirty hack, should rely on ActionManager to understand that menu item was either chosen on or cancelled
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -1568,13 +1572,6 @@ public class JBTabsImpl extends JComponent
 
     final Insets border = isHideTabs() ? new Insets(0, 0, 0, 0) : myBorder.getEffectiveBorder();
     final boolean noTabsVisible = isStealthModeEffective() || isHideTabs();
-
-    if (noTabsVisible) {
-      border.top = getBorder(-1);
-      border.bottom = getBorder(-1);
-      border.left = getBorder(-1);
-      border.right = getBorder(-1);
-    }
 
     final Insets inner = getInnerInsets();
     border.top += inner.top;
@@ -1804,8 +1801,8 @@ public class JBTabsImpl extends JComponent
 
 
       g2d.setPaint(UIUtil.getGradientPaint((float)gradientLine.getX1(), (float)gradientLine.getY1(),
-                                     shapeInfo.fillPath.transformY1(shapeInfo.from, shapeInfo.to), (float)gradientLine.getX2(),
-                                     (float)gradientLine.getY2(), shapeInfo.fillPath.transformY1(shapeInfo.to, shapeInfo.from)));
+                                           shapeInfo.fillPath.transformY1(shapeInfo.from, shapeInfo.to), (float)gradientLine.getX2(),
+                                           (float)gradientLine.getY2(), shapeInfo.fillPath.transformY1(shapeInfo.to, shapeInfo.from)));
       g2d.fill(shapeInfo.fillPath.getShape());
     }
 
@@ -2097,7 +2094,7 @@ public class JBTabsImpl extends JComponent
 
   @Override
   public Color getBackground() {
-    return UIUtil.isUnderNimbusLookAndFeel() ? UIUtil.getPanelBackground() : super.getBackground();
+    return UIUtil.isUnderNimbusLookAndFeel() ? UIUtil.getPanelBackground() : UIUtil.getBgFillColor(getParent());
   }
 
   protected void doPaintInactive(Graphics2D g2d,
@@ -2200,14 +2197,14 @@ public class JBTabsImpl extends JComponent
       shape.transformLine(0, topY, 0, topY + shape.deltaY((int)(shape.getHeight() / 1.5)));
 
     final Paint gp = UIUtil.isUnderDarcula()
-                             ? UIUtil.getGradientPaint(gradientLine.x1, gradientLine.y1,
-                                                 shape.transformY1(backgroundColor, backgroundColor),
-                                                 gradientLine.x2, gradientLine.y2,
-                                                 shape.transformY1(backgroundColor, backgroundColor))
-                             : UIUtil.getGradientPaint(gradientLine.x1, gradientLine.y1,
-                                                 shape.transformY1(backgroundColor.brighter().brighter(), backgroundColor),
-                                                 gradientLine.x2, gradientLine.y2,
-                                                 shape.transformY1(backgroundColor, backgroundColor.brighter().brighter()));
+                     ? UIUtil.getGradientPaint(gradientLine.x1, gradientLine.y1,
+                                               shape.transformY1(backgroundColor, backgroundColor),
+                                               gradientLine.x2, gradientLine.y2,
+                                               shape.transformY1(backgroundColor, backgroundColor))
+                     : UIUtil.getGradientPaint(gradientLine.x1, gradientLine.y1,
+                                               shape.transformY1(backgroundColor.brighter().brighter(), backgroundColor),
+                                               gradientLine.x2, gradientLine.y2,
+                                               shape.transformY1(backgroundColor, backgroundColor.brighter().brighter()));
 
     final Paint old = g2d.getPaint();
     g2d.setPaint(gp);
@@ -2273,13 +2270,13 @@ public class JBTabsImpl extends JComponent
           g2d.drawLine((int)line.x1, (int)line.y1, (int)line.x2, (int)line.y2);
         }
         else if (paintBorder.top > 2) {
-//todo kirillk
-//start hack
+          //todo kirillk
+          //start hack
           int deltaY = 0;
           if (myPosition == JBTabsPosition.bottom || myPosition == JBTabsPosition.right) {
             deltaY = 1;
           }
-//end hack
+          //end hack
           final int topLine = topY + shape.path.deltaY(paintBorder.top - 1);
           g2d.fill(shaper.reset().doRect(boundsX, topLine + deltaY, boundsWidth - 1, 1).getShape());
         }
@@ -2337,7 +2334,7 @@ public class JBTabsImpl extends JComponent
     //final GraphicsConfig config = new GraphicsConfig(g);
     //try {
     //  config.setAntialiasing(true);
-      paintSelectionAndBorder((Graphics2D)g);
+    paintSelectionAndBorder((Graphics2D)g);
     //} finally {
     //  config.restore();
     //}

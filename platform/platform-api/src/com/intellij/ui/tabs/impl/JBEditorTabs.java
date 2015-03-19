@@ -185,6 +185,7 @@ public class JBEditorTabs extends JBTabsImpl {
 
     Insets insets = getTabsBorder().getEffectiveBorder();
 
+    int minOffset = vertical ? getHeight(): getWidth();
     int maxOffset = 0;
     int maxLength = 0;
 
@@ -193,35 +194,43 @@ public class JBEditorTabs extends JBTabsImpl {
       TabLabel tabLabel = myInfo2Label.get(visibleInfo);
       Rectangle r = tabLabel.getBounds();
       if (r.width == 0 || r.height == 0) continue;
-      maxOffset = vertical ? r.y + r.height : r.x + r.width;
+      minOffset = Math.min(vertical ? r.y : r.x, minOffset);
+      maxOffset = Math.max(vertical ? r.y + r.height : r.x + r.width, maxOffset);
       maxLength = vertical ? r.width : r.height;
-      break;
     }
 
+    minOffset--;
     maxOffset++;
 
-    Rectangle r2 = getBounds();
+    Rectangle r2 = new Rectangle(0, 0, getWidth(), getHeight());
 
-    Rectangle rectangle;
+    Rectangle beforeTabs;
+    Rectangle afterTabs;
     if (vertical) {
-      rectangle = new Rectangle(insets.left, maxOffset, getWidth(),
+      beforeTabs = new Rectangle(insets.left, insets.top, getWidth(), minOffset - insets.top);
+      afterTabs = new Rectangle(insets.left, maxOffset, getWidth(),
                                 r2.height - maxOffset - insets.top - insets.bottom);
     } else {
       int y = r2.y + insets.top;
       int height = maxLength - insets.top - insets.bottom;
       if (getTabsPosition() == JBTabsPosition.bottom) {
         y = r2.height - height - insets.top + getActiveTabUnderlineHeight();
-      } else {
+      }
+      else {
+        height++;
         height -= getActiveTabUnderlineHeight();
       }
+      y--;
 
-      rectangle = new Rectangle(maxOffset, y, r2.width - maxOffset - insets.left - insets.right, height);
+      afterTabs = new Rectangle(maxOffset, y, r2.width - maxOffset - insets.left - insets.right, height);
+      beforeTabs = new Rectangle(0, y, minOffset, height);
     }
 
-    getPainter().doPaintBackground(g2d, clip, vertical, rectangle);
+    getPainter().doPaintBackground(g2d, clip, vertical, afterTabs);
     if (isSingleRow()) {
       g2d.setPaint(getEmptySpaceColor());
-      g2d.fill(rectangle);
+      g2d.fill(beforeTabs);
+      g2d.fill(afterTabs);
     }
   }
 
@@ -262,13 +271,14 @@ public class JBEditorTabs extends JBTabsImpl {
     shape.labelPath = shape.path.createTransform(getSelectedLabel().getBounds());
 
     shape.labelBottomY = shape.labelPath.getMaxY() - shape.labelPath.deltaY(getActiveTabUnderlineHeight() - 1);
+    boolean isTop = getPosition() == JBTabsPosition.top;
+    boolean isBottom = getPosition() == JBTabsPosition.bottom;
     shape.labelTopY =
-      shape.labelPath.getY() + (getPosition() == JBTabsPosition.top || getPosition() == JBTabsPosition.bottom ? shape.labelPath.deltaY(1) : 0) ;
-    shape.labelLeftX = shape.labelPath.getX() + (getPosition() == JBTabsPosition.top || getPosition() == JBTabsPosition.bottom ? 0 : shape.labelPath.deltaX(
-      1));
+      shape.labelPath.getY() + (isTop ? shape.labelPath.deltaY(1) : isBottom ? shape.labelPath.deltaY(-1) : 0) ;
+    shape.labelLeftX = shape.labelPath.getX() + (isTop || isBottom ? 0 : shape.labelPath.deltaX(1));
     shape.labelRightX = shape.labelPath.getMaxX() /*- shape.labelPath.deltaX(1)*/;
 
-    int leftX = shape.insets.left + (getPosition() == JBTabsPosition.top || getPosition() == JBTabsPosition.bottom ? 0 : shape.labelPath.deltaX(1));
+    int leftX = shape.insets.left + (isTop || isBottom ? 0 : shape.labelPath.deltaX(1));
 
     shape.path.moveTo(leftX, shape.labelBottomY);
     shape.path.lineTo(shape.labelLeftX, shape.labelBottomY);
