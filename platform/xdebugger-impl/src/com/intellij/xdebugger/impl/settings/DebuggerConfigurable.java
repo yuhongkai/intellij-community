@@ -19,6 +19,7 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.PlatformUtils;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.xdebugger.XDebuggerBundle;
@@ -48,6 +49,7 @@ public class DebuggerConfigurable implements SearchableConfigurable.Parent {
 
   @Override
   public String getHelpTopic() {
+    if (PlatformUtils.isCLion()) return "reference.idesettings.debugger";
     return myRootConfigurable != null ? myRootConfigurable.getHelpTopic() : null;
   }
 
