@@ -18,6 +18,7 @@ package com.intellij.ide.util.gotoByName;
 
 import com.intellij.featureStatistics.FeatureUsageTracker;
 import com.intellij.ide.ui.UISettings;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.keymap.KeymapUtil;
@@ -25,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -35,6 +37,7 @@ import com.intellij.ui.ScreenUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import sun.java2d.DisposerTarget;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,9 +49,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ChooseByNamePopup extends ChooseByNameBase implements ChooseByNamePopupComponent {
-  public static final Key<String> CURRENT_SEARCH_PATTERN = new Key<String>("StringText");
+public class ChooseByNamePopup extends ChooseByNameBase implements ChooseByNamePopupComponent, Disposable {
   public static final Key<ChooseByNamePopup> CHOOSE_BY_NAME_POPUP_IN_PROJECT_KEY = new Key<ChooseByNamePopup>("ChooseByNamePopup");
+  public static final Key<String> CURRENT_SEARCH_PATTERN = new Key<String>("ChooseByNamePattern");
   private Component myOldFocusOwner = null;
   private boolean myShowListForEmptyPattern = false;
   private final boolean myMayRequestCurrentWindow;
@@ -71,8 +74,8 @@ public class ChooseByNamePopup extends ChooseByNameBase implements ChooseByNameP
     }
     myMayRequestCurrentWindow = mayRequestOpenInCurrentWindow;
     myAdText = myMayRequestCurrentWindow ? "Press " +
-                                           KeymapUtil.getKeystrokeText(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK)) +
-                                           " to open in current window" : null;
+            KeymapUtil.getKeystrokeText(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK)) +
+            " to open in current window" : null;
   }
 
   public String getEnteredText() {
@@ -164,14 +167,14 @@ public class ChooseByNamePopup extends ChooseByNameBase implements ChooseByNameP
     if (myDropdownPopup == null) {
       ComponentPopupBuilder builder = JBPopupFactory.getInstance().createComponentPopupBuilder(myListScrollPane, myListScrollPane);
       builder.setFocusable(false)
-        .setLocateWithinScreenBounds(false)
-        .setRequestFocus(false)
-        .setCancelKeyEnabled(false)
-        .setFocusOwners(new JComponent[]{myTextField})
-        .setBelongsToGlobalPopupStack(false)
-        .setModalContext(false)
-        .setAdText(adText)
-        .setMayBeParent(true);
+              .setLocateWithinScreenBounds(false)
+              .setRequestFocus(false)
+              .setCancelKeyEnabled(false)
+              .setFocusOwners(new JComponent[]{myTextField})
+              .setBelongsToGlobalPopupStack(false)
+              .setModalContext(false)
+              .setAdText(adText)
+              .setMayBeParent(true);
       builder.setCancelCallback(new Computable<Boolean>() {
         @Override
         public Boolean compute() {
@@ -189,7 +192,7 @@ public class ChooseByNamePopup extends ChooseByNameBase implements ChooseByNameP
       // in 'focus follows mouse' mode, to avoid focus escaping to editor, don't reduce popup size when list size is reduced
       final Dimension currentSize = myDropdownPopup.getSize();
       if (UISettings.getInstance().HIDE_NAVIGATION_ON_FOCUS_LOSS ||
-          preferredBounds.width > currentSize.width || preferredBounds.height > currentSize.height) {
+              preferredBounds.width > currentSize.width || preferredBounds.height > currentSize.height) {
         myDropdownPopup.setSize(preferredBounds.getSize());
       }
     }
@@ -254,6 +257,8 @@ public class ChooseByNamePopup extends ChooseByNameBase implements ChooseByNameP
     }
 
     setDisposed(true);
+    Disposer.dispose(this);
+    myProject.putUserData(ChooseByNamePopup.CURRENT_SEARCH_PATTERN, null);
     myAlarm.cancelAllRequests();
     if (myProject != null) {
       myProject.putUserData(CHOOSE_BY_NAME_POPUP_IN_PROJECT_KEY, null);
@@ -301,7 +306,7 @@ public class ChooseByNamePopup extends ChooseByNameBase implements ChooseByNameP
                                               @Nullable final String predefinedText,
                                               boolean mayRequestOpenInCurrentWindow, final int initialIndex) {
     return createPopup(project, model, new DefaultChooseByNameItemProvider(context), predefinedText, mayRequestOpenInCurrentWindow,
-                       initialIndex);
+            initialIndex);
   }
 
   public static ChooseByNamePopup createPopup(final Project project,
@@ -354,10 +359,10 @@ public class ChooseByNamePopup extends ChooseByNameBase implements ChooseByNameP
   public static String getTransformedPattern(String pattern, ChooseByNameModel model) {
     Pattern regex = null;
     if (pattern.indexOf(':') != -1 ||
-        pattern.indexOf(',') != -1 ||
-        pattern.indexOf(';') != -1 ||
-        //pattern.indexOf('#') != -1 ||
-        pattern.indexOf('@') != -1) { // quick test if reg exp should be used
+            pattern.indexOf(',') != -1 ||
+            pattern.indexOf(';') != -1 ||
+            //pattern.indexOf('#') != -1 ||
+            pattern.indexOf('@') != -1) { // quick test if reg exp should be used
       regex = patternToDetectLinesAndColumns;
     }
 
@@ -462,5 +467,10 @@ public class ChooseByNamePopup extends ChooseByNameBase implements ChooseByNameP
 
   public void repaintList() {
     myList.repaint();
+  }
+
+  @Override
+  public void dispose() {
+
   }
 }

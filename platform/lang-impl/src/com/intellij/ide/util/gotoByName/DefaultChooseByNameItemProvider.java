@@ -54,6 +54,8 @@ public class DefaultChooseByNameItemProvider implements ChooseByNameItemProvider
                                 boolean everywhere,
                                 @NotNull final ProgressIndicator indicator,
                                 @NotNull final Processor<Object> consumer) {
+    base.myProject.putUserData(ChooseByNamePopup.CURRENT_SEARCH_PATTERN, pattern);
+
     String namePattern = getNamePattern(base, pattern);
     String qualifierPattern = getQualifierPattern(base, pattern);
 
@@ -140,8 +142,8 @@ public class DefaultChooseByNameItemProvider implements ChooseByNameItemProvider
 
       // use interruptible call if possible
       Object[] elements = model instanceof ContributorsBasedGotoByModel ?
-                                ((ContributorsBasedGotoByModel)model).getElementsByName(name, parameters, indicator)
-                                : model.getElementsByName(name, everywhere, namePattern);
+              ((ContributorsBasedGotoByModel)model).getElementsByName(name, parameters, indicator)
+              : model.getElementsByName(name, everywhere, namePattern);
       if (elements.length > 1) {
         sameNameElements.clear();
         qualifierMatchResults.clear();
