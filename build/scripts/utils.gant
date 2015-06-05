@@ -870,6 +870,8 @@ binding.setVariable("buildWinZip", { String zipPath, List paths ->
 binding.setVariable("buildCrossPlatformZip", { String zipPath, String sandbox, List commonPaths, String distWin, String distUnix, String distMac ->
   projectBuilder.stage("Building cross-platform zip")
 
+  product_lc = p("component.names.product").toLowerCase()
+
   def zipDir = "$sandbox/cross-platform-zip"
   def ideaPropertiesFile = commonPaths.collect { new File(it, "bin/idea.properties") }.find { it.exists() }
   ["win", "linux"].each {
@@ -879,16 +881,16 @@ binding.setVariable("buildCrossPlatformZip", { String zipPath, String sandbox, L
   ant.fixcrlf(file: "$zipDir/bin/win/idea.properties", eol: "dos")
   ant.copy(todir: "$zipDir/bin/linux") {
     fileset(dir: "$distUnix/bin") {
-      include(name: "idea*.vmoptions")
+      include(name: "${product_lc}*.vmoptions")
     }
   }
   ant.copy(todir: "$zipDir/bin/mac") {
     fileset(dir: "$distMac/bin") {
-      include(name: "idea.vmoptions")
+      include(name: "${product_lc}.vmoptions")
       include(name: "idea.properties")
     }
   }
-  ant.copy(file: "$distMac/bin/idea.vmoptions", tofile: "$zipDir/bin/mac/idea64.vmoptions")
+  ant.copy(file: "$distMac/bin/${product_lc}.vmoptions", tofile: "$zipDir/bin/mac/${product_lc}64.vmoptions")
 
   ant.zip(zipfile: zipPath, duplicate: "fail") {
     commonPaths.each {
@@ -900,17 +902,17 @@ binding.setVariable("buildCrossPlatformZip", { String zipPath, String sandbox, L
 
     fileset(dir: distWin) {
       exclude(name: "bin/fsnotifier*.exe")
-      exclude(name: "bin/idea*.exe.vmoptions")
-      exclude(name: "bin/idea*.exe")
+      exclude(name: "bin/${product_lc}*.exe.vmoptions")
+      exclude(name: "bin/${product_lc}*.exe")
     }
     zipfileset(dir: "$distWin/bin", prefix: "bin/win") {
       include(name: "fsnotifier*.exe")
-      include(name: "idea*.exe.vmoptions")
+      include(name: "${product_lc}*.exe.vmoptions")
     }
 
     fileset(dir: distUnix) {
       exclude(name: "bin/fsnotifier*")
-      exclude(name: "bin/idea*.vmoptions")
+      exclude(name: "bin/${product_lc}*.vmoptions")
       exclude(name: "bin/*.sh")
       exclude(name: "help/**")
     }
@@ -927,7 +929,7 @@ binding.setVariable("buildCrossPlatformZip", { String zipPath, String sandbox, L
       exclude(name: "bin/*.sh")
       exclude(name: "bin/*.py")
       exclude(name: "bin/idea.properties")
-      exclude(name: "bin/idea*.vmoptions")
+      exclude(name: "bin/${product_lc}*.vmoptions")
     }
     zipfileset(dir: "$distMac/bin", filemode: "775", prefix: "bin") {
       include(name: "restarter*")
