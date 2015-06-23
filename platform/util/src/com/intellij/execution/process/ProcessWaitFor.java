@@ -18,7 +18,13 @@ package com.intellij.execution.process;
 import com.intellij.execution.TaskExecutor;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.Consumer;
+import com.intellij.util.TimeoutUtil;
+import com.intellij.util.containers.MultiMap;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
@@ -64,5 +70,75 @@ public class ProcessWaitFor {
 
   public void setTerminationCallback(Consumer<Integer> r) {
     myTerminationCallback.offer(r);
+  }
+
+  private static final MultiMap<Process, Consumer<Integer>> ourQueue;
+
+  static {
+    ourQueue = new MultiMap<Process, Consumer<Integer>>();
+
+    BaseOSProcessHandler.ExecutorServiceHolder.submit(new Runnable() {
+      @Override
+      public void run() {
+        //noinspection InfiniteLoopStatement
+        while (true) {
+          try {
+            processQueue();
+            TimeoutUtil.sleep(50);
+          }
+          catch (ThreadDeath e) {
+            throw e;
+          }
+          catch (Throwable t) {
+            LOG.error(t);
+          }
+        }
+      }
+    });
+  }
+
+  private static void processQueue() {
+    synchronized (ourQueue) {
+      for (Iterator<Map.Entry<Process, Collection<Consumer<Integer>>>> iterator = ourQueue.entrySet().iterator(); iterator.hasNext(); ) {
+        Map.Entry<Process, Collection<Consumer<Integer>>> entry = iterator.next();
+        try {
+          int value = entry.getKey().exitValue();
+
+          for (Consumer<Integer> callback : entry.getValue()) {
+            try {
+              callback.consume(value);
+            }
+            catch (Throwable t) {
+              LOG.error(t);
+            }
+          }
+
+          iterator.remove();
+        }
+        catch (IllegalThreadStateException ignore) { }
+      }
+    }
+  }
+
+  @Deprecated
+  /**
+   * @deprecated Left for compatibility of Scala 1.6.0
+   */
+  public static void attach(@NotNull Process process, @NotNull Consumer<Integer> callback) {
+    synchronized (ourQueue) {
+      ourQueue.putValue(process, callback);
+    }
+  }
+
+  @Deprecated
+  /**
+   * @deprecated Left for compatibility of Scala 1.6.0
+   */
+  public static void detach(@NotNull Process process, Consumer<Integer> callback) {
+    if (callback != null) {
+      synchronized (ourQueue) {
+        ourQueue.remove(process, callback);
+      }
+    }
   }
 }

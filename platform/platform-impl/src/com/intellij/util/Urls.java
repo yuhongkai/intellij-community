@@ -92,6 +92,15 @@ public final class Urls {
     return StringUtil.contains(url, URLUtil.SCHEME_SEPARATOR) ? parseUrl(url) : newLocalFileUrl(url.toString());
   }
 
+  /**
+   *  @deprecated Left for compatibility of Pythonid v.4.1, org.jetbrains.plugins.ruby v.8.0.0.20150616
+   */
+  @Nullable
+  @Deprecated
+  public static Url parseFromIdea(@NotNull String url) {
+    return StringUtil.contains(url, URLUtil.SCHEME_SEPARATOR) ? parseUrl(url) : newLocalFileUrl(url);
+  }
+
   @Nullable
   public static Url parse(@NotNull String url, boolean asLocalIfNoScheme) {
     if (url.isEmpty()) {
